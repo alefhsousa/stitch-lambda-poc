@@ -1,0 +1,47 @@
+Resources:
+
+  StitchLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: StitchLambdarole
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+
+  StitchLambdaLayerBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: stitch-poc-bucket-lambda
+
+  StitchLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: StitchLambdaFunction
+      Role: !GetAtt StitchLambdaRole.Arn
+      Runtime: python3.9
+      Handler: index.my_handler
+      Code:
+        ZipFile: |
+          def my_handler(event, context):
+            message = 'Lilo & Stitch!'
+            return message
+      Layers:
+       - !Ref StitchLambdaLayer
+
+  StitchLambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleRuntimes:
+        - python3.6
+        - python3.7
+        - python3.8
+        - python3.9
+      Content:
+        S3Bucket: !Ref StitchLambdaLayerBucket
+        S3Key: lambda-layer.zip
+      Description: Layer created by stitch
+      LayerName: stitch-layer
+      LicenseInfo: MIT
